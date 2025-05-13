@@ -14,7 +14,7 @@
 #include<math.h>
 #include<string>
 #include<fstream>
-#include"Grating.h"
+#include"Phaser.h"
 #include"Config.h"
 
 
@@ -22,17 +22,23 @@ class CameraDlp
 {
 
 public:
-	CameraDlp(const Config& params) :image_rows(params.H),
-		image_cols(params.W),output_dir(params.output_dir) {
-	};
+	CameraDlp(const Config& params)
+		:image_rows(params.H),image_cols(params.W),output_dir(params.output_dir),center_size(params.center_size)
+	{};
 	~CameraDlp() = default;
+
+public:
 	int image_rows, image_cols;//相机图片大小
 	string output_dir; //
 
-	std::vector<std::vector<cv::Point2f>> corner_points;//标定板图像坐标
-	std::vector<std::vector<cv::Point2f>> centerpoints;
-	std::vector<std::vector<cv::Point3f>> world_points;//标定板世界坐标
-	cv::Mat camera_matrix_cv;//相机内参矩阵
+public:
+	double center_size;
+	std::vector<std::vector<cv::Point2f>> corner_points;		//标定板图像坐标
+	std::vector<std::vector<cv::Point2f>> center_points;
+	std::vector<std::vector<cv::Point3f>> world_points;		//标定板世界坐标
+
+
+	cv::Mat camera_matrix_cv;							//相机内参矩阵
 	Eigen::Matrix<double, 3, 3> camera_matrix_eigen;
 	cv::Mat dist_coefficients;//k1 k2 p1 p2 k3
 	std::vector< cv::Mat >  rotation_vectors;//旋转向量，棋盘格到相机坐标系
@@ -44,7 +50,6 @@ public:
 	//cv::Mat shadow_img;//白光带阴影的图片
 
 	const cv::Size circleboard_size = cv::Size(11, 9);  //(7,7)  (6,7)
-	double center_size = 20;//xmm  // 0.003  3  2  2.5
 
 
 	std::vector<cv::Point2f > corner_points_temp;
@@ -69,6 +74,4 @@ public:
 	void calculate3DPoints(cv::Mat FAI_phase, pcl::PointCloud<pcl::PointXYZ>::Ptr src_cloud_ptr, cv::Mat shadowflag_img);
 	void calculate3D_FeaturePoint(cv::Mat FAI_phase, pcl::PointCloud<pcl::PointXYZ>::Ptr src_cloud_ptr, cv::Mat shadowflag_img);
 	void calculate3DPoints_TextureMapping(cv::Mat FAI_phase, cv::Mat source_picture, pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud_ptr, cv::Mat shadowflag_img);
-
-
 };

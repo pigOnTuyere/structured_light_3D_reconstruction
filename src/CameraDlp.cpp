@@ -2,7 +2,7 @@
 
 #include<iostream>
 #include"CameraDlp.h"
-#include"Grating.h"
+#include "Phaser.h"
 #include "MyPointCloud.h"
 
 using namespace std;
@@ -63,12 +63,30 @@ bool CameraDlp::detectCircleGridPoints(cv::Mat calib_img)
 
 	// Configure blob detector parameters
 	cv::SimpleBlobDetector::Params params;
-	params.maxArea = 1e5;                 // Maximum blob area
-	params.minArea = 100;                 // Minimum blob area
-	params.minDistBetweenBlobs = 20;      // Minimum distance between blobs
-	params.minThreshold = 200;
-	params.maxThreshold = 245;
-	params.thresholdStep = 2;
+	//params.maxArea = 1e5;                 // Maximum blob area
+	//params.minArea = 100;                 // Minimum blob area
+	//params.minDistBetweenBlobs = 20;      // Minimum distance between blobs
+	//params.minThreshold = 200;
+	//params.maxThreshold = 245;
+	//params.thresholdStep = 2;
+
+
+	params.minThreshold = 10;
+	params.maxThreshold = 220;
+	params.thresholdStep = 5;
+
+	params.filterByArea = true;
+	params.minArea = 50;
+	params.maxArea = 5000;
+
+	params.filterByCircularity = true;
+	params.minCircularity = 0.7f;
+
+	params.filterByInertia = true;
+	params.minInertiaRatio = 0.3f;
+
+	params.filterByConvexity = true;
+	params.minConvexity = 0.8f;
 
 	// Create the blob detector
 	cv::Ptr<cv::FeatureDetector> blobDetector = cv::SimpleBlobDetector::create(params);

@@ -6,18 +6,18 @@
 
 #include <iostream>
 #include "CameraDlp.h"
-#include "Grating.h"
+#include "Phaser.h"
 #include "MyPointCloud.h"
 #include "Config.h"
 
 int main()
 {
         Config config;
-        Grating grating;
+        Phaser phaser(config);;
         CameraDlp camera_dlp(config);
         MyPointCloud point_cloud;
 
-        // Load calibration data: reference images and grating fringe images
+        // Load calibration data: reference images and phaser fringe images
         int num_images = config.N * config.T + 1;
         std::vector<cv::Mat> calibration_images;
         std::vector<std::vector<cv::Mat>> grating_calibration_images;
@@ -56,9 +56,9 @@ int main()
         }
 
         std::cout << "Calibration image count: " << calibration_images.size() << std::endl;
-        std::cout << "Grating group count: " << grating_calibration_images.size() << std::endl;
+        std::cout << "Phaser group count: " << grating_calibration_images.size() << std::endl;
         if (!grating_calibration_images.empty())
-                std::cout << "Images in first grating group: " << grating_calibration_images[0].size() << std::endl;
+                std::cout << "Images in first phaser group: " << grating_calibration_images[0].size() << std::endl;
 
         // Extract calibration board features
         int num_successes = 0;
@@ -76,11 +76,11 @@ int main()
 
                 for (int i = 0; i < config.num_groups; ++i)
                 {
-                        grating.threeFrequencyHeterodyneImproved(camera_dlp.corner_points[i], grating_calibration_images[i]);
+                        phaser.threeFrequencyHeterodyneImproved(camera_dlp.corner_points[i], grating_calibration_images[i]);
                 }
 
                 camera_dlp.calculateCameraPoints();
-                camera_dlp.phase3DPointsMapping(grating.samples_FAI);
+                camera_dlp.phase3DPointsMapping(phaser.samples_FAI);
 
                 std::cout << "System calibration completed!" << std::endl;
         }
@@ -90,7 +90,8 @@ int main()
         }
 
         // Load reconstruction data
-        std::string reconstruction_path = "L:\\三维重建课程\\八参数标定重建示例数据\\20240517\\重建\\减速器合件\\1\\*.bmp";
+        //  E:\\结构光\\danmu_nixiangji_duopin\\danmu_逆相机\\danmu_逆相机\\biaoding\\4bu3pin_hv706459_A130_160-1\\1\\*.bmp
+        std::string reconstruction_path = "E:\\结构光\\danmu_nixiangji_duopin\\danmu_逆相机\\danmu_逆相机\\biaoding\\4bu3pin_hv706459_A130_160-1\\1\\*.bmp";
         std::cout << reconstruction_path << std::endl;
 
         std::vector<cv::String> reconstruction_files;
@@ -111,20 +112,20 @@ int main()
                 std::cout << reconstruction_files[i] << std::endl;
         }
 
-        std::cout << "Loaded grating images count: " << grating_images.size() << std::endl;
+        std::cout << "Loaded phaser images count: " << grating_images.size() << std::endl;
 
         // Phase unwrapping
-        grating.removeShadow(grating_images);
-        grating.N_StepPhaseShifting(grating_images);
-        grating.ThreeFrequencyUnwrap();
+        phaser.removeShadow(grating_images);
+        phaser.N_StepPhaseShifting(grating_images);
+        phaser.ThreeFrequencyUnwrap();
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr_rgb(new pcl::PointCloud<pcl::PointXYZRGB>);
         pcl::PointCloud<pcl::PointXYZ>::Ptr feature_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
         // 3D reconstruction
-        camera_dlp.calculate3DPoints(grating.m_AbsolutePhiPhase, cloud_ptr, grating.m_ShadowflagImage);
-        camera_dlp.calculate3DPoints_TextureMapping(grating.m_AbsolutePhiPhase, reference_image, cloud_ptr_rgb, grating.m_ShadowflagImage);
+        camera_dlp.calculate3DPoints(phaser.m_absolute_phase, cloud_ptr, phaser.m_ShadowflagImage);
+        camera_dlp.calculate3DPoints_TextureMapping(phaser.m_absolute_phase, reference_image, cloud_ptr_rgb, phaser.m_ShadowflagImage);
 
         pcl::io::savePCDFile("output.pcd", *cloud_ptr);
 
